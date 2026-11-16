@@ -19,6 +19,12 @@
   .meld { position: absolute; left: 38.6%; top: 88.2%; width: 42%; height: 5.6%; min-height: 0; padding: 0; border: 0; border-radius: 14px; background: transparent;
     animation: gloed 2.2s ease-in-out infinite; }
   @keyframes gloed { 50% { box-shadow: 0 0 0 4px rgba(255, 190, 90, .55), 0 0 26px 6px rgba(255, 170, 70, .55); } }
+  /* Görseldeki video düğmesinin tam üstünde (yer: mail/maak-kaart.py çıktısı): aynı parlama + büyüyüp küçülen oynat üçgeni. */
+  .vid { position: absolute; left: 21.44%; top: 96.22%; width: 75.44%; height: 3.26%; border-radius: 99px; animation: gloed 2.2s ease-in-out infinite; }
+  .vid:focus-visible { outline: 3px solid var(--glow); outline-offset: 2px; }
+  .vid i { position: absolute; left: 1.77%; top: 9.09%; height: 81.82%; aspect-ratio: 1; border-radius: 50%; background: #c41e2a; }
+  .vid i::after { content: ""; position: absolute; inset: 0; background: #fff; clip-path: polygon(32% 24%, 32% 76%, 79% 50%); animation: speel 1.1s ease-in-out infinite; }
+  @keyframes speel { 0%, 100% { transform: scale(.72); } 50% { transform: scale(1.22); } }
   dialog { border: 0; width: min(420px, calc(100vw - 28px)); max-height: calc(100vh - 28px); padding-top: 34px !important; }
   dialog::backdrop { background: rgba(10, 8, 6, .72); backdrop-filter: blur(3px); }
   .sluit { position: absolute; right: 10px; top: 10px; min-height: 0; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-size: 18px; }
@@ -36,22 +42,26 @@
   button[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px #2e7d4f !important; }
   button .vink { display: none; }
   button[aria-pressed="true"] .vink { display: inline; }
-  .status { margin: 16px 0 0; padding: 12px 14px; border-radius: 14px; font-weight: 600; text-align: center; }
-  .status.ok { background: #e2f1e6; color: #1d5a37; }
+  .status { margin: 18px 0 0; padding: 12px 14px; border-radius: 16px; font-weight: 600; text-align: center; }
+  .status.ok { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; font-size: 18px; font-weight: 700; line-height: 1.3; text-align: left;
+    color: #fff; background: linear-gradient(180deg, #2a9159, #1f7a48); box-shadow: 0 8px 20px rgba(31, 122, 72, .35); animation: pop .4s ease-out; }
+  .status.ok::before { content: "✓"; flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #1f7a48; font-size: 19px; }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } 60% { transform: scale(1.03); } }
   .status.fout { background: #fbe3e1; color: #8a1820; }
   .klein { margin: 14px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
   .melding { text-align: center; }
   .melding b { display: block; font-size: 20px; margin-bottom: 6px; }
   [hidden] { display: none !important; }
-  @media (prefers-reduced-motion: reduce) { button { transition: none; } .meld { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { button { transition: none; } .meld, .status.ok, .vid, .vid i::after { animation: none; } }
 </style>
 </head>
 <body>
 <main>
   <div class="kaart">
-    <img src="uitnodiging.jpg" width="900" height="1350" alt="Uitnodiging Campfire Christmas, het kerstevent van STC Next: dinsdag 15 december, 18:00 – 21:40 uur, Landgoed Hoeksekade 162, Bergschenhoek. Programma: kerstborrel met foodfestival en kerstpakket samenstellen op de kerstmarkt. Aanmelden is verplicht.">
+    <img src="uitnodiging.jpg" width="900" height="1350" alt="Uitnodiging Campfire Christmas, het kerstevent van STC Next: dinsdag 15 december, 18:00 – 21:40 uur, Vidaa Landgoed, Hoeksekade 162, 2661 JL Bergschenhoek. Programma: kerstborrel met foodfestival en kerstpakket samenstellen op de kerstmarkt. Aanmelden is verplicht. Onderaan: bekijk de video van Campfire.">
     <!-- Davetiyedeki "Meld je hier aan!" düğmesinin tam üstünde duran görünmez düğme (konum görselin yüzdesi olarak). -->
     <button id="meld" class="meld" type="button" aria-label="Meld je hier aan"></button>
+    <a class="vid" href="https://vimeo.com/reviews/a7122599-1072-48ae-897e-d2fb771d348b/videos/1153627011" target="_blank" rel="noopener" aria-label="Bekijk de video van Campfire"><i aria-hidden="true"></i></a>
   </div>
 
   <dialog id="dlg" class="card" aria-labelledby="hallo">
@@ -80,7 +90,13 @@
 (() => {
   const $ = id => document.getElementById(id);
   const scriptUrl = (window.RSVP_CONFIG || {}).scriptUrl;
-  const code = new URLSearchParams(location.search).get('c') || '';
+  // Kişiye özel kod adres çubuğundan silinir (uzun link görünmesin, kopyalanıp paylaşılmasın); sekme yenilenirse sessionStorage'dan okunur.
+  const uitLink = new URLSearchParams(location.search).get('c');
+  let code = uitLink || '';
+  try {
+    if (uitLink) { sessionStorage.setItem('c', uitLink); history.replaceState(null, '', location.pathname); }
+    else code = sessionStorage.getItem('c') || '';
+  } catch { /* depolama kapalıysa kod adreste kalır, sayfa yine çalışır */ }
 
   async function call(body) {
     // text/plain: tarayıcı ön kontrol (CORS preflight) yapmaz, Apps Script bunu kabul eder.
