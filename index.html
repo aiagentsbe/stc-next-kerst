@@ -139,6 +139,7 @@
   $('dlg').onclick = e => { if (e.target === $('dlg')) $('dlg').close(); }; // dışına dokununca kapanır
   $('opnieuw').onclick = laad;
   laad();
+  $('dlg').showModal(); // mailden gelen tek tıkla cevap verir; kapatırsa davetiyedeki düğme yeniden açar
 })();
 </script>
 </body>
