@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#14110f">
+<title>Campfire Christmas – STC Next</title>
+<style>
+  :root { --night: #14110f; --paper: #f6ead6; --ink: #2b1a12; --muted: #7a6455; --red: #b3202a; --red-d: #86141c; --glow: #ffb347; --line: #e3d2b8; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; min-height: 100vh; font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--paper);
+    background: radial-gradient(120% 60% at 15% 0%, rgba(255, 140, 40, .28), transparent 60%),
+      radial-gradient(90% 50% at 100% 10%, rgba(40, 60, 110, .45), transparent 65%), var(--night); background-attachment: fixed; }
+  main { max-width: 460px; margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); }
+  .kaart { position: relative; border-radius: 22px; overflow: hidden; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); }
+  .kaart img { display: block; width: 100%; height: auto; }
+  .meld { position: absolute; left: 38.6%; top: 88.2%; width: 42%; height: 5.6%; min-height: 0; padding: 0; border: 0; border-radius: 14px; background: transparent;
+    animation: gloed 2.2s ease-in-out infinite; }
+  @keyframes gloed { 50% { box-shadow: 0 0 0 4px rgba(255, 190, 90, .55), 0 0 26px 6px rgba(255, 170, 70, .55); } }
+  dialog { border: 0; width: min(420px, calc(100vw - 28px)); max-height: calc(100vh - 28px); padding-top: 34px !important; }
+  dialog::backdrop { background: rgba(10, 8, 6, .72); backdrop-filter: blur(3px); }
+  .sluit { position: absolute; right: 10px; top: 10px; min-height: 0; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-size: 18px; }
+  .card { background: var(--paper); color: var(--ink); border-radius: 22px; padding: 24px 20px 20px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 220, 170, .12); }
+  .hallo { margin: 0; font: 400 28px/1.2 "Segoe Script", "Snell Roundhand", "Brush Script MT", cursive; color: var(--red-d); }
+  .vraag { margin: 8px 0 18px; font-size: 20px; font-weight: 700; line-height: 1.3; }
+  .knoppen { display: grid; gap: 10px; }
+  button { appearance: none; font: inherit; font-size: 18px; font-weight: 700; min-height: 58px; border-radius: 16px; cursor: pointer; padding: 12px 16px;
+    display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform .12s, box-shadow .12s, background .12s; }
+  button:active { transform: scale(.98); }
+  button:focus-visible { outline: 3px solid var(--glow); outline-offset: 2px; }
+  button:disabled { opacity: .55; cursor: default; }
+  #ja { border: 0; color: #fff; background: linear-gradient(180deg, #d32b36, var(--red) 55%, var(--red-d)); box-shadow: 0 8px 20px rgba(179, 32, 42, .35); }
+  #nee { border: 2px solid #cdb89a; color: var(--ink); background: transparent; }
+  button[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px #2e7d4f !important; }
+  button .vink { display: none; }
+  button[aria-pressed="true"] .vink { display: inline; }
+  .status { margin: 16px 0 0; padding: 12px 14px; border-radius: 14px; font-weight: 600; text-align: center; }
+  .status.ok { background: #e2f1e6; color: #1d5a37; }
+  .status.fout { background: #fbe3e1; color: #8a1820; }
+  .klein { margin: 14px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
+  .melding { text-align: center; }
+  .melding b { display: block; font-size: 20px; margin-bottom: 6px; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { button { transition: none; } .meld { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="kaart">
+    <img src="uitnodiging.jpg" width="900" height="1350" alt="Uitnodiging Campfire Christmas, het kerstevent van STC Next: dinsdag 15 december, 18:00 – 21:40 uur, Landgoed Hoeksekade 162, Bergschenhoek. Programma: kerstborrel met foodfestival en kerstpakket samenstellen op de kerstmarkt. Aanmelden is verplicht.">
+    <!-- Davetiyedeki "Meld je hier aan!" düğmesinin tam üstünde duran görünmez düğme (konum görselin yüzdesi olarak). -->
+    <button id="meld" class="meld" type="button" aria-label="Meld je hier aan"></button>
+  </div>
+
+  <dialog id="dlg" class="card" aria-labelledby="hallo">
+    <button id="sluit" class="sluit" type="button" aria-label="Sluiten">✕</button>
+    <div id="laden" class="melding">Even geduld…</div>
+
+    <div id="fout" class="melding" hidden>
+      <b id="foutT"></b><span id="foutS"></span>
+      <div class="knoppen" style="margin-top:16px"><button id="opnieuw" type="button" hidden>Opnieuw proberen</button></div>
+    </div>
+
+    <div id="form" hidden>
+      <p class="hallo" id="hallo">Hallo <span id="naam"></span>,</p>
+      <p class="vraag">Ben je erbij op dinsdag 15 december?</p>
+      <div class="knoppen">
+        <button id="ja" type="button" aria-pressed="false"><span class="vink" aria-hidden="true">✓</span>Ja, ik ben erbij</button>
+        <button id="nee" type="button" aria-pressed="false"><span class="vink" aria-hidden="true">✓</span>Nee, helaas niet</button>
+      </div>
+      <p id="status" class="status" aria-live="polite" hidden></p>
+      <p id="klein" class="klein"></p>
+    </div>
+  </dialog>
+</main>
+<script src="config.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const scriptUrl = (window.RSVP_CONFIG || {}).scriptUrl;
+  const code = new URLSearchParams(location.search).get('c') || '';
+
+  async function call(body) {
+    // text/plain: tarayıcı ön kontrol (CORS preflight) yapmaz, Apps Script bunu kabul eder.
+    const res = await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ code, ...body }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+    return res.json();
+  }
+
+  function fout(titel, tekst, opnieuw) {
+    $('laden').hidden = $('form').hidden = true;
+    $('fout').hidden = false;
+    $('foutT').textContent = titel; $('foutS').textContent = tekst;
+    $('opnieuw').hidden = !opnieuw;
+  }
+  const geenLink = () => fout('Deze link werkt niet.', 'Gebruik de knop in je uitnodigingsmail.');
+  const geenNet = () => fout('Geen verbinding.', 'Controleer je internet en probeer het opnieuw.', true);
+
+  function toon(r, net) {
+    $('laden').hidden = $('fout').hidden = true;
+    $('form').hidden = false;
+    $('naam').textContent = r.naam;
+    $('ja').setAttribute('aria-pressed', r.antwoord === 'ja');
+    $('nee').setAttribute('aria-pressed', r.antwoord === 'nee');
+    $('ja').disabled = $('nee').disabled = !r.open;
+    const s = $('status');
+    s.hidden = !r.antwoord; s.className = 'status ok';
+    s.textContent = r.antwoord === 'ja' ? (net ? 'Bedankt! We zien je op 15 december.' : 'Je hebt je aangemeld. Tot 15 december!')
+      : r.antwoord === 'nee' ? (net ? 'Jammer! Bedankt voor je bericht.' : 'Je hebt je afgemeld.') : '';
+    const tm = new Date(r.deadline + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
+    $('klein').textContent = !r.open ? 'Aanmelden is gesloten. Neem contact op met de organisatie als er iets wijzigt.'
+      : r.antwoord ? `Je kunt je antwoord wijzigen t/m ${tm}.` : `Aanmelden kan t/m ${tm}.`;
+  }
+
+  async function laad() {
+    $('fout').hidden = true; $('laden').hidden = false;
+    if (!scriptUrl || !code) return geenLink();
+    let r;
+    try { r = await call({ action: 'wie' }); } catch { return geenNet(); }
+    r.ok ? toon(r) : geenLink();
+  }
+
+  for (const antwoord of ['ja', 'nee']) {
+    $(antwoord).onclick = async () => {
+      $('ja').disabled = $('nee').disabled = true;
+      let r;
+      try { r = await call({ action: 'antwoord', antwoord }); } catch { r = null; }
+      if (r && r.ok) return toon(r, true);
+      if (r && r.error === 'gesloten') return laad();
+      $('ja').disabled = $('nee').disabled = false;
+      const s = $('status');
+      s.hidden = false; s.className = 'status fout';
+      s.textContent = 'Opslaan is niet gelukt. Probeer het opnieuw.';
+    };
+  }
+  $('meld').onclick = () => $('dlg').showModal();
+  $('sluit').onclick = () => $('dlg').close();
+  $('dlg').onclick = e => { if (e.target === $('dlg')) $('dlg').close(); }; // dışına dokununca kapanır
+  $('opnieuw').onclick = laad;
+  laad();
+})();
+</script>
+</body>
+</html>
